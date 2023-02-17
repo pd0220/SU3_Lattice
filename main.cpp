@@ -53,6 +53,13 @@ auto quart = [](auto const &x)
     return sq(sq(x));
 };
 
+// lattice size
+const int Ns = 6;
+const int Nt = 4;
+// number of links(?) for 4 spacetime dimensions
+const int NSite = cb(Ns) * Nt;
+const int NLink = NSite * 4;
+
 // Eigen vector to std vector
 vector<int> eigen_to_std(Eigen::VectorXi const &Eigen_v)
 {
@@ -69,13 +76,25 @@ double RandomNumber()
 {
     return uniformDistr(gen);
 }
+// uniform random from [0, Ns)
+std::uniform_int_distribution uniformNsDistr(0, Ns - 1);
+int RandomNsNumber()
+{
+    return uniformNsDistr(gen);
+}
+// uniform random from [0, Nt)
+std::uniform_int_distribution uniformNtDistr(0, Nt - 1);
+int RandomNtNumber()
+{
+    return uniformNtDistr(gen);
+}
+// unform random from [0, 4)
+std::uniform_int_distribution uniformDirDistr(0, 3);
+int RandomDirNumber()
+{
+    return uniformDirDistr(gen);
+}
 
-// lattice size
-const int Ns = 4;
-const int Nt = 4;
-// number of links(?) for 4 spacetime dimensions
-const int NSite = cb(Ns) * Nt;
-const int NLink = NSite * 4;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -137,7 +156,6 @@ vector<int> GetCoordinates(int const &index, vector<int> const &dims)
 // trace free logarithm of a (unitary) matrix
 // explicitly using that we have SU(3) matrices
 // [arxiv: 0709.4110] (A.7)
-/*
 Eigen::Matrix3cd TraceFreeLogM(Eigen::Matrix3cd const &U, double const &ImTrace)
 {
     // solving the eigenvalue problem
@@ -325,7 +343,6 @@ void save_lattice(char *filename, vector<Eigen::Matrix3cd> links)
     fclose(f);
     // free(complink);
 }
-*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -433,7 +450,7 @@ vector<Eigen::MatrixXi> StapleSumImproved_ARGUMENTS(vector<int> const &coordinat
     arguments[1](1, 5) = 0;
     // U_mu(n - 2 nu)^dagger
     arguments[1](2, nu) -= 2;
-    arguments[1](1, 5) = 0;
+    arguments[1](2, 5) = 0;
     // U_nu(n - 2 nu)
     arguments[1](3, nu) -= 2;
     arguments[1](3, 4) = nu;
@@ -541,6 +558,7 @@ Eigen::Matrix3cd StapleSumImproved(vector<Eigen::Matrix3cd> const &links, vector
         // construct staple
         for (int link = 0; link < 5; link++)
         {
+            // adjoint or not?
             if (arguments[staple](link, 5) == 0)
                 tmpMat *= links[GetIndex(eigen_to_std(arguments[staple].row(link)), dims)].adjoint();
             else
@@ -548,6 +566,7 @@ Eigen::Matrix3cd StapleSumImproved(vector<Eigen::Matrix3cd> const &links, vector
         }
         // add up staples
         stapleSum += tmpMat;
+        tmpMat = ID3;
     }
     // return sum of staples
     return stapleSum;
@@ -616,7 +635,7 @@ Eigen::Matrix3cd UpdatingMatrix(double const &eps)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // local change in Wilson action (single site?)
-double DeltaAction(double const &beta, vector<Eigen::Matrix3cd> const &links, vector<int> const &coordinates, vector<int> const &dims, Eigen::Matrix3cd const &U, Eigen::Matrix3cd const &X)
+double DeltaAction(double const &beta, double const &c0, double const &c1, vector<Eigen::Matrix3cd> const &links, vector<int> const &coordinates, vector<int> const &dims, Eigen::Matrix3cd const &U, Eigen::Matrix3cd const &X)
 {
     // Lorentz index of the given link
     int mu = coordinates[4];
@@ -639,7 +658,8 @@ double DeltaAction(double const &beta, vector<Eigen::Matrix3cd> const &links, ve
     // return local change Wilson action
     // return -beta / 3. * ((X - ID3) * U * A).real().trace();
     // return local change in the improved Wilson action
-    return -beta / 9. * ((X - ID3) * U * (5 * A - 0.25 * B)).real().trace();
+    // return -beta / 9. * ((X - ID3) * U * (5 * A - 0.25 * B)).real().trace();
+    return -beta / 3. * ((X - ID3) * U * (c0 * A + c1 * B)).real().trace();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -742,7 +762,7 @@ complex<double> PolyakovLoop(vector<Eigen::Matrix3cd> const &links, vector<int> 
         prod *= links[GetIndex(coordinates, dims)];
     }
     // return Polyakov loop
-    return prod.trace() / (double)Nt;
+    return prod.trace();
 }
 
 // general Polyakov loop ~ loop in any dimension
@@ -771,7 +791,7 @@ complex<double> GeneralPolyakovLoop(vector<Eigen::Matrix3cd> const &links, vecto
         prod *= links[GetIndex(coordinates, dims)];
     }
     // return Polyakov loop
-    return prod.trace() / (double)N;
+    return prod.trace();
 }
 
 // average Polyakov loop
@@ -826,12 +846,22 @@ double Rate(double const &deltaAction)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // _MAIN_ function
-int main(int, char **argv)
+int main(int argc, char **argv)
 {
+    // if not enough arguments given
+    if (argc < 4)
+    {
+        cout << "ERROR in main: not enough arguments given." << endl;
+        exit(-1);
+    }
     // coupling
     double beta = atof(argv[1]);
+    // coefficient of the rectangular plaquette
+    double c1 = atof(argv[2]);
+    // coefficient of the plaquette from normalization: c0 + 8 c1 = 1
+    double c0 = 1. - 8. * c1;
     // spread parameter
-    double eps = 0.025;
+    double eps = atof(argv[3]);
     // dimensions
     vector<int> dims = {Ns, Ns, Ns, Nt, 4};
     // initial coordinates
@@ -839,17 +869,23 @@ int main(int, char **argv)
 
     // cold start
     vector<Eigen::Matrix3cd> links(NLink, ID3);
-    
+
     // testing
     // const char *p = "lat_12_4_181126_151350";
     // vector<Eigen::Matrix3cd> links = read_lattice(const_cast<char *>(p));
+
+    // cout << AverageTemporalPlaquette(links, dims) << endl;
+    // cout << AverageSpatialPlaquette(links, dims) << endl;
+    // cout << AveragePolyakovLoop(links, dims) << endl;
+    // cout << AverageSpatialPolyakovLoop(links, dims) << endl;
+
     // const char *t = "save_lattice_TEST";
     // save_lattice(const_cast<char *>(t), links);
     // vector<Eigen::Matrix3cd> links2 = read_lattice(const_cast<char *>(t));
 
     // RUN simulation
     // SWEEPS
-    int T = (int)100000;
+    int T = (int)10000;
     int tau = 5;
     for (int t = 0; t < T; t++)
     {
@@ -859,8 +895,10 @@ int main(int, char **argv)
             // Metropolis step
             //
             // choosing a site and a direction randomly
-            for (int coord = 0; coord < 5; coord++)
-                coordinates[coord] = (int)(RandomNumber() * dims[coord]);
+            for (int coord = 0; coord < 3; coord++)
+                coordinates[coord] = RandomNsNumber();
+            coordinates[3] = RandomNtNumber();
+            coordinates[4] = RandomDirNumber();
 
             // updating X
             Eigen::Matrix3cd X = UpdatingMatrix(eps);
@@ -869,7 +907,7 @@ int main(int, char **argv)
             Eigen::Matrix3cd U = links[GetIndex(coordinates, dims)];
 
             // local change in the Wilson action
-            double deltaAction = DeltaAction(beta, links, coordinates, dims, U, X);
+            double deltaAction = DeltaAction(beta, c0, c1, links, coordinates, dims, U, X);
             // rate
             double rate = Rate(deltaAction);
             // random number from [0, 1)
@@ -887,7 +925,9 @@ int main(int, char **argv)
             // for (int m = 0; m < NLink; m++)
             //    links[m].row(2) = (links[m].row(0).conjugate()).cross(links[m].row(1).conjugate());
             // measuring the average plaquette
-            cout << AveragePlaquette(links, dims) << endl;
+            complex<double> avgPLoop = AveragePolyakovLoop(links, dims);
+            complex<double> avgSPLoop = AverageSpatialPolyakovLoop(links, dims);
+            cout << AveragePlaquette(links, dims) << " " << avgPLoop.real() << " " << avgPLoop.imag() << " " << avgSPLoop.real() << " " << avgSPLoop.imag() << endl;
         }
     }
 }

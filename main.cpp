@@ -20,7 +20,7 @@ using namespace std;
 
 // imaginary unit
 const complex<double> I(0., 1.);
-// square root of 3
+// one over square root of 3
 const double ONE_OVER_SQRT3 = 1. / sqrt(3.);
 // complex 2x2 and 3x3 identity matrices
 // pi
@@ -53,10 +53,10 @@ auto quart = [](auto const &x)
     return sq(sq(x));
 };
 
-// lattice size
+// lattice sizes
 const int Ns = 6;
 const int Nt = 4;
-// number of links(?) for 4 spacetime dimensions
+// number of links for 4 spacetime dimensions
 const int NSite = cb(Ns) * Nt;
 const int NLink = NSite * 4;
 
@@ -147,7 +147,7 @@ vector<int> GetCoordinates(int const &index, vector<int> const &dims)
         offset /= dims[i];
     }
 
-    // retur coordinates and spacetime direction
+    // return coordinates and spacetime direction
     return coordinates;
 }
 
@@ -170,7 +170,7 @@ Eigen::Matrix3cd TraceFreeLogM(Eigen::Matrix3cd const &U, double const &ImTrace)
 
     // initialize logarithm
     Eigen::Matrix3cd logM = Eigen::Matrix3cd::Zero();
-    // 2pi > 6 always
+    // 2 pi > 6 ~ always true
     while (abs(t) > 6.)
     {
         // find the eigenvalue with the largest imaginary part
@@ -226,7 +226,7 @@ Eigen::Matrix3cd convert_mat_iotof(su3_matrix_io *alpha)
 
 double dot_gellmann(Eigen::Matrix3cd const &A, int n)
 {
-    // Computes Tr(A lambda_n) where lambda_n is the nth Gell-Mann matrix
+    // computes Tr(A lambda_n) where lambda_n is the nth Gell-Mann matrix
     switch (n)
     {
     case 1:
@@ -336,7 +336,6 @@ void save_lattice(char *filename, vector<Eigen::Matrix3cd> links)
         {
             convert_mat_ftoio(links[NSite * idir + isite], &complink);
             fwrite(&complink, sizeof(su3_matrix_io), 1, f);
-
             // free(complink);
         }
     }
@@ -404,7 +403,7 @@ vector<Eigen::MatrixXi> StapleSumImproved_ARGUMENTS(vector<int> const &coordinat
     // link coordinates
     // &
     // if 0 take adjoint
-    // else do not
+    // else do nothing
     Eigen::RowVectorXi coordinates_and_ifDagger(6);
     coordinates_and_ifDagger << coordinates[0], coordinates[1], coordinates[2], coordinates[3], coordinates[4], 1;
 

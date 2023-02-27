@@ -18,14 +18,23 @@ if (MSVC)
   string(REGEX REPLACE "/W[0-9]" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 endif (MSVC)
 
-add_executable(SU3_Lattice main.cpp)
+add_executable(Quenched_Lattice mainQuenched.cpp)
 
-set_target_properties(SU3_Lattice PROPERTIES CXX_STANDARD 17
+set_target_properties(Quenched_Lattice PROPERTIES CXX_STANDARD 17
                                 CXX_STANDARD_REQUIRED ON
                                 CXX_EXTENSIONS OFF)
 
-target_compile_options(SU3_Lattice PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wall -Wextra -pedantic>
+target_compile_options(Quenched_Lattice PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wall -Wextra -pedantic>
                                          $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->)
+
+add_executable(HDQCD_Lattice mainHDQCD.cpp)
+
+set_target_properties(HDQCD_Lattice PROPERTIES CXX_STANDARD 17
+                                CXX_STANDARD_REQUIRED ON
+                                CXX_EXTENSIONS OFF)
+
+target_compile_options(HDQCD_Lattice PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wall -Wextra -pedantic>
+                                        $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -54,7 +54,7 @@ double DeltaFermionAction_PQ(int const &Nf, double const &q_prf, double const &q
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// fermion determinant
+// fermion determinant (Nf = 1)
 complex<double> FermionDeterminant(double const &q_prf, double const &qBar_prf, vector<Eigen::Matrix3cd> const &links, vector<int> const &dims)
 {
     // lattices size
@@ -85,7 +85,7 @@ complex<double> FermionDeterminant(double const &q_prf, double const &qBar_prf, 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // density
-complex<double> Density(double const &q_prf, double const &qBar_prf, vector<Eigen::Matrix3cd> const &links, vector<int> const &dims)
+complex<double> Density(int const &Nf, double const &q_prf, double const &qBar_prf, vector<Eigen::Matrix3cd> const &links, vector<int> const &dims)
 {
     // lattice size
     int Ns = dims[0];
@@ -107,7 +107,7 @@ complex<double> Density(double const &q_prf, double const &qBar_prf, vector<Eige
             }
 
     // return density
-    return 6. * sum;
+    return (double)Nf * 6. / (double)cb(Ns) * sum;
 }
 
 #pragma warning(pop)

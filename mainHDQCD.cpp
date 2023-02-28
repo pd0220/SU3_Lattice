@@ -101,18 +101,19 @@ int main(int argc, char **argv)
     vector<int> coordinates = {0, 0, 0, 0, 0};
 
     // cold start
-    vector<Eigen::Matrix3cd> links(NLink, ID3);
+    // vector<Eigen::Matrix3cd> links(NLink, ID3);
 
     // testing
-    /*
     const char *p = "lat_12_4_181126_151350";
     vector<Eigen::Matrix3cd> links = read_lattice(const_cast<char *>(p));
 
-    cout << AverageTemporalPlaquette(links, dims) << endl;
-    cout << AverageSpatialPlaquette(links, dims) << endl;
-    cout << AveragePolyakovLoop(links, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(links, dims) << endl;
-    */
+    cout << "Average temporal plaquette " << AverageTemporalPlaquette(links, dims) << endl;
+    cout << "Average spatial plaquette " << AverageSpatialPlaquette(links, dims) << endl;
+    cout << "Average Polyakov loop" << AveragePolyakovLoop(links, dims) << endl;
+    cout << "Average spatial Polyakov loop" << AverageSpatialPolyakovLoop(links, dims) << endl;
+    cout << "mu = " << mu << endl;
+    cout << "LnDet " << log(FermionDeterminant(q_prf, qBar_prf, links, dims)) << endl;
+    cout << "n " << Density(q_prf, qBar_prf, links, dims) << endl;
 
     /*
     const char *t = "save_lattice_TEST";
@@ -125,44 +126,7 @@ int main(int argc, char **argv)
     cout << AverageSpatialPolyakovLoop(links, dims) << endl;
     */
 
-    // stout smearing tests
     /*
-    vector<Eigen::Matrix3cd> smearedLinks1 = StoutLattice(links, dims, 0.125);
-
-    cout << AverageTemporalPlaquette(smearedLinks1, dims) << endl;
-    cout << AverageSpatialPlaquette(smearedLinks1, dims) << endl;
-    cout << AveragePolyakovLoop(smearedLinks1, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(smearedLinks1, dims) << endl;
-
-    vector<Eigen::Matrix3cd> smearedLinks2 = StoutLattice(smearedLinks1, dims, 0.125);
-
-    cout << AverageTemporalPlaquette(smearedLinks2, dims) << endl;
-    cout << AverageSpatialPlaquette(smearedLinks2, dims) << endl;
-    cout << AveragePolyakovLoop(smearedLinks2, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(smearedLinks2, dims) << endl;
-
-    vector<Eigen::Matrix3cd> smearedLinks3 = StoutLattice(smearedLinks2, dims, 0.125);
-
-    cout << AverageTemporalPlaquette(smearedLinks2, dims) << endl;
-    cout << AverageSpatialPlaquette(smearedLinks2, dims) << endl;
-    cout << AveragePolyakovLoop(smearedLinks2, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(smearedLinks2, dims) << endl;
-
-    vector<Eigen::Matrix3cd> smearedLinks4 = StoutLattice(smearedLinks3, dims, 0.125);
-
-    cout << AverageTemporalPlaquette(smearedLinks4, dims) << endl;
-    cout << AverageSpatialPlaquette(smearedLinks4, dims) << endl;
-    cout << AveragePolyakovLoop(smearedLinks4, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(smearedLinks4, dims) << endl;
-
-    vector<Eigen::Matrix3cd> smearedLinks5 = StoutLattice(smearedLinks4, dims, 0.125);
-
-    cout << AverageTemporalPlaquette(smearedLinks5, dims) << endl;
-    cout << AverageSpatialPlaquette(smearedLinks5, dims) << endl;
-    cout << AveragePolyakovLoop(smearedLinks5, dims) << endl;
-    cout << AverageSpatialPolyakovLoop(smearedLinks5, dims) << endl;
-    */
-
     // RUN simulation
     // SWEEPS
     int tau = 5;
@@ -193,7 +157,7 @@ int main(int argc, char **argv)
 
             // change in the action
             double deltaAction = deltaGaugeAction + deltaFermionAction_PQ;
-            
+
             // rate
             double rate = Rate(deltaAction);
             // random number from [0, 1)
@@ -209,8 +173,8 @@ int main(int argc, char **argv)
         {
             // PROJECTING BACK TO SU(3)
             // for (int m = 0; m < NLink; m++)
-                // links[m].row(2) = (links[m].row(0).conjugate()).cross(links[m].row(1).conjugate()).conjugate();
-            
+            // links[m].row(2) = (links[m].row(0).conjugate()).cross(links[m].row(1).conjugate()).conjugate();
+
             complex<double> avgPLoop = AveragePolyakovLoop(links, dims);
             complex<double> det = FermionDeterminant(q_prf, qBar_prf, links, dims);
             complex<double> reweightingFactor = pow(det / abs(det), Nf);
@@ -228,6 +192,7 @@ int main(int argc, char **argv)
                  << reweightingFactor.imag() << endl;
         }
     }
+    */
 }
 
 #pragma warning(pop)
